@@ -6,6 +6,8 @@ type LevenshteinParam struct {
 	Replace float64
 }
 
+type LsdFunc func(string, string) float64
+
 func generateCostFunc(p LevenshteinParam) func(rune, rune, float64, float64, float64) float64 {
 	return func(aRune, bRune rune, diagonal, above, left float64) float64 {
 		cost := diagonal
@@ -22,7 +24,7 @@ func generateCostFunc(p LevenshteinParam) func(rune, rune, float64, float64, flo
 	}
 }
 
-func GenerateLsdFunc(p LevenshteinParam) func(string, string) float64 {
+func GenerateLsdFunc(p LevenshteinParam) LsdFunc {
 	costFunc := generateCostFunc(p)
 	return func(a, b string) float64 {
 		ar, br := []rune(a), []rune(b)
