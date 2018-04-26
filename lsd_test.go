@@ -4,14 +4,16 @@ import "testing"
 
 func TestGenerateLsdFunc(t *testing.T) {
 	testdata := []struct {
+		Param LevenshteinParam
 		A     string
 		B     string
 		Cost  float64
-		Param LevenshteinParam
 	}{
-		{"book", "back", 2, LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}},
-		{"book", "back", 0.2, LevenshteinParam{Insert: 1, Delete: 1, Replace: 0.1}},
-		{"こんにちは", "こんばんは", 2, LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}},
+		{LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}, "book", "back", 2},
+		{LevenshteinParam{Insert: 1, Delete: 1, Replace: 0.1}, "book", "back", 0.2},
+		{LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 1}, "book", "back", 2},
+		{LevenshteinParam{Insert: 1, Delete: 0.1, Replace: 1}, "book", "back", 2},
+		{LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}, "こんにちは", "こんばんは", 2},
 	}
 
 	for _, d := range testdata {
