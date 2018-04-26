@@ -14,10 +14,10 @@ func generateCostFunc(p LevenshteinParam) func(rune, rune, float64, float64, flo
 		if aRune != bRune {
 			cost += p.Replace
 		}
-		if c := left + p.Insert; c < cost {
+		if c := above + p.Insert; c < cost {
 			cost = c
 		}
-		if c := above + p.Delete; c < cost {
+		if c := left + p.Delete; c < cost {
 			cost = c
 		}
 		return cost
