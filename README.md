@@ -21,7 +21,7 @@ func main() {
     fmt.Printf("normal lsd = %f\n", Lsd(a, b))
 
     // custom lsd
-    lsdf := GenerateLsdFunc(LevenshteinParam{Insert: 1, Delete: 0.1, Replace: 1})
+    lsdf := GenerateLsdFunc(LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 0.01})
     fmt.Printf("custom lsd = %f\n", lsdf(a, b))
 }
 ```
@@ -30,13 +30,12 @@ func main() {
 $ go run main.go
 compare string: kitten, shitting
 normal lsd = 4.000000
-custom lsd = 2.200000
+custom lsd = 0.220000
 ```
 
 ## Use Case
 
 - Clastering error messages
-    - Decrease `Replace` parameter
 
 ## License
 
