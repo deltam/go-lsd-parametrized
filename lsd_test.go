@@ -10,7 +10,7 @@ func equals(a, b float64) bool {
 	return math.Abs(a-b) < epsilon
 }
 
-func TestGenerateLsdFunc(t *testing.T) {
+func TestLevesteinParam_Distance(t *testing.T) {
 	testdata := []struct {
 		Param LevenshteinParam
 		A     string
@@ -30,8 +30,7 @@ func TestGenerateLsdFunc(t *testing.T) {
 	}
 
 	for _, d := range testdata {
-		lsd := GenerateLsdFunc(d.Param)
-		if c := lsd(d.A, d.B); !equals(c, d.Cost) {
+		if c := d.Param.Distance(d.A, d.B); !equals(c, d.Cost) {
 			t.Errorf("lsd(\"%s\", \"%s\") = %f, want %f", d.A, d.B, c, d.Cost)
 		}
 	}
