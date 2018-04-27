@@ -44,3 +44,14 @@ func (p LevenshteinParam) Distance(a, b string) float64 {
 func Lsd(a, b string) float64 {
 	return NormalLSD.Distance(a, b)
 }
+
+func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest string, distance float64) {
+	distance = 1000000000
+	for _, sub := range subjects {
+		if d := p.Distance(raw, sub); d < distance {
+			distance = d
+			nearest = sub
+		}
+	}
+	return nearest, distance
+}

@@ -53,3 +53,29 @@ func TestLsd(t *testing.T) {
 		}
 	}
 }
+
+func TestLevesteinParam_FindNearest(t *testing.T) {
+	answers := []string{
+		"book",
+		"back",
+		"cook",
+	}
+	testdata := []struct {
+		Raw    string
+		Answer string
+	}{
+		{"book", "book"},
+		{"pack", "back"},
+		{"sick", "back"},
+		{"cop", "cook"},
+	}
+
+	param := LevenshteinParam{1, 1, 1}
+
+	for i, td := range testdata {
+		ans, score := param.FindNearest(td.Raw, answers)
+		if ans != td.Answer {
+			t.Errorf(`FindNearest error: i=%d found "%s"(%f), want "%s"`, i, ans, score, td.Answer)
+		}
+	}
+}
