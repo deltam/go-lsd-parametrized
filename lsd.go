@@ -45,13 +45,27 @@ func Lsd(a, b string) float64 {
 	return NormalLSD.Distance(a, b)
 }
 
+type lsdResult struct {
+	Str      string
+	Distance float64
+}
+
 func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest string, distance float64) {
-	distance = 1000000000
+	ch := make(chan lsdResult)
 	for _, sub := range subjects {
-		if d := p.Distance(raw, sub); d < distance {
-			distance = d
-			nearest = sub
+		go func(s string) {
+			d := p.Distance(raw, s)
+			ch <- lsdResult{Str: s, Distance: d}
+		}(sub)
+	}
+
+	distance = 1000000000
+	for i := 0; i < len(subjects); i++ {
+		result := <-ch
+		if result.Distance < distance {
+			distance = result.Distance
+			nearest = result.Str
 		}
 	}
-	return nearest, distance
+	return
 }
