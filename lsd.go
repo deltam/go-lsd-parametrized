@@ -69,3 +69,21 @@ func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest st
 	}
 	return
 }
+
+type FailedReport struct {
+	Raw        string
+	FailedStr  string
+	SucceedStr string
+	Dist       float64
+}
+
+func (p LevenshteinParam) Evaluate(findStrs []string, collectCases map[string]string) (succeedRate float64, reports []FailedReport) {
+	for s, succeedStr := range collectCases {
+		ans, dist := p.FindNearest(s, findStrs)
+		if ans != succeedStr {
+			reports = append(reports, FailedReport{Raw: s, FailedStr: ans, SucceedStr: succeedStr, Dist: dist})
+		}
+	}
+	succeedRate = 1.0 - float64(len(reports))/float64(len(collectCases))
+	return
+}
