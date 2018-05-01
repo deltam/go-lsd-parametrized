@@ -1,6 +1,6 @@
 # go-lsd-parametrized
 
-Generate function of calculate Levestein Distance by specific parameters written in Go.
+Calculate Levestein Distance by specific parameters written in Go.
 
 ## Usage
 
@@ -21,8 +21,8 @@ func main() {
     fmt.Printf("normal lsd = %f\n", Lsd(a, b))
 
     // custom lsd
-    lsdf := GenerateLsdFunc(LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 0.01})
-    fmt.Printf("custom lsd = %f\n", lsdf(a, b))
+    params := LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 0.01}
+    fmt.Printf("custom lsd = %f\n", params.Distance(a, b))
 }
 ```
 
