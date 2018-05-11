@@ -106,12 +106,13 @@ func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest st
 		}(sub)
 	}
 
-	distance = 1000000000
+	initFlag := true
 	for i := 0; i < len(subjects); i++ {
 		result := <-ch
-		if result.Distance < distance {
+		if initFlag || result.Distance < distance {
 			distance = result.Distance
 			nearest = result.Str
+			initFlag = false
 		}
 	}
 	return
