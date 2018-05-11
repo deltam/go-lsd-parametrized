@@ -12,8 +12,6 @@ type LevenshteinParam struct {
 	Replace float64
 }
 
-var NormalLSD = LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}
-
 const (
 	InsertCost  = 1
 	DeleteCost  = 1
@@ -89,7 +87,8 @@ func (p LevenshteinParam) Distance(a, b string) float64 {
 }
 
 func Lsd(a, b string) float64 {
-	return NormalLSD.Distance(a, b)
+	d, _ := DistanceWithDetail(a, b)
+	return d
 }
 
 func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest string, distance float64) {
