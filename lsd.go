@@ -14,49 +14,90 @@ type LevenshteinParam struct {
 
 var NormalLSD = LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}
 
-func (p LevenshteinParam) cost(aRune, bRune rune, diagonal, above, left float64) float64 {
-	cost := diagonal
-	if aRune != bRune {
-		cost += p.Replace
-	}
-	if c := above + p.Insert; c < cost {
-		cost = c
-	}
-	if c := left + p.Delete; c < cost {
-		cost = c
-	}
-	return cost
+const (
+	InsertCost  = 1
+	DeleteCost  = 1
+	ReplaceCost = 1
+)
+
+type EditType int
+
+const (
+	INSERT EditType = iota
+	DELETE
+	REPLACE
+	NONE
+)
+
+type EditCounts [4]int
+
+type editCell struct {
+	Cost   float64
+	Counts EditCounts
 }
 
-func (p LevenshteinParam) Distance(a, b string) float64 {
+func (c *editCell) incIns() {
+	c.Cost += InsertCost
+	c.Counts[INSERT]++
+}
+
+func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
+	cell := diagonal
+	et := NONE
+	if aRune != bRune {
+		cell.Cost += ReplaceCost
+		et = REPLACE
+	}
+	if c := above.Cost + InsertCost; c < cell.Cost {
+		cell = above
+		cell.Cost = c
+		et = INSERT
+	}
+	if c := left.Cost + DeleteCost; c < cell.Cost {
+		cell = left
+		cell.Cost = c
+		et = DELETE
+	}
+	cell.Counts[et]++
+	return cell
+}
+
+func DistanceWithDetail(a, b string) (float64, EditCounts) {
 	ar, br := []rune(a), []rune(b)
-	costRow := make([]float64, len(ar)+1)
-	for i, _ := range costRow {
-		costRow[i] = float64(i)
+	costRow := make([]editCell, len(ar)+1)
+	for i := 1; i < len(costRow); i++ {
+		costRow[i] = costRow[i-1]
+		costRow[i].incIns()
 	}
 
-	next := make([]float64, len(costRow))
+	next := make([]editCell, len(costRow))
 	for bc := 1; bc < len(br)+1; bc++ {
-		next[0] = float64(bc)
+		next[0] = costRow[0]
+		next[0].incIns()
 		for i := 1; i < len(next); i++ {
-			next[i] = p.cost(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
+			next[i] = cost(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
 		}
 		costRow, next = next, costRow
 	}
 
-	return costRow[len(costRow)-1]
+	return costRow[len(costRow)-1].Cost, costRow[len(costRow)-1].Counts
+}
+
+func (p LevenshteinParam) Distance(a, b string) float64 {
+	_, cnt := DistanceWithDetail(a, b)
+	return float64(cnt[INSERT])*p.Insert + float64(cnt[DELETE])*p.Delete + float64(cnt[REPLACE])*p.Replace
 }
 
 func Lsd(a, b string) float64 {
 	return NormalLSD.Distance(a, b)
 }
 
-type lsdResult struct {
-	Str      string
-	Distance float64
-}
-
 func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest string, distance float64) {
+	type lsdResult struct {
+		Str      string
+		Distance float64
+	}
+
 	ch := make(chan lsdResult)
 	for _, sub := range subjects {
 		go func(s string) {

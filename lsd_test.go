@@ -10,6 +10,39 @@ func equals(a, b float64) bool {
 	return math.Abs(a-b) < epsilon
 }
 
+func TestLevesteinParam_DistanceWithDetail(t *testing.T) {
+	testdata := []struct {
+		A    string
+		B    string
+		Cost float64
+		Edit [4]int
+	}{
+		{"book", "back", 2, EditCounts{0, 0, 2, 2}},
+		{"book", "backs", 3, EditCounts{1, 0, 2, 2}},
+		{"こんにちは", "こんばんは", 2, EditCounts{0, 0, 2, 3}},
+		{"book", "board", 3, EditCounts{1, 0, 2, 2}},
+		{"book", "boo", 1, EditCounts{0, 1, 0, 3}},
+	}
+	eqEdit := func(et EditCounts, edit EditCounts) bool {
+		for i := 0; i < 4; i++ {
+			if et[i] != edit[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	for i, d := range testdata {
+		c, mt := DistanceWithDetail(d.A, d.B)
+		if !equals(c, d.Cost) {
+			t.Errorf("%d: lsd(\"%s\", \"%s\") = %f, want %f", i, d.A, d.B, c, d.Cost)
+		}
+		if !eqEdit(mt, d.Edit) {
+			t.Errorf("%d: lsd_edit(\"%s\", \"%s\") = %v, want %v", i, d.A, d.B, mt, d.Edit)
+		}
+	}
+}
+
 func TestLevesteinParam_Distance(t *testing.T) {
 	testdata := []struct {
 		Param LevenshteinParam
@@ -29,9 +62,9 @@ func TestLevesteinParam_Distance(t *testing.T) {
 		{LevenshteinParam{Insert: 1, Delete: 1, Replace: 0.1}, "book", "board", 1.2},
 	}
 
-	for _, d := range testdata {
+	for i, d := range testdata {
 		if c := d.Param.Distance(d.A, d.B); !equals(c, d.Cost) {
-			t.Errorf("lsd(\"%s\", \"%s\") = %f, want %f", d.A, d.B, c, d.Cost)
+			t.Errorf("%d: lsd(\"%s\", \"%s\") = %f, want %f", i, d.A, d.B, c, d.Cost)
 		}
 	}
 }
