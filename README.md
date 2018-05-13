@@ -1,6 +1,6 @@
 # go-lsd-parametrized
 
-Calculate Levestein Distance by specific parameters written in Go.
+Calculate Leveshtein Distance by specific parameters written in Go.
 
 ## Usage
 
