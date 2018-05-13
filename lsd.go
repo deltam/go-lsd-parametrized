@@ -12,12 +12,6 @@ type LevenshteinParam struct {
 	Replace float64
 }
 
-const (
-	InsertCost  = 1
-	DeleteCost  = 1
-	ReplaceCost = 1
-)
-
 type EditType int
 
 const (
@@ -29,39 +23,20 @@ const (
 
 type EditCounts [4]int
 
-type editCell struct {
-	Cost   float64
-	Counts EditCounts
+func (ec EditCounts) Get(t EditType) int {
+	return ec[t]
 }
 
-func (c *editCell) incIns() {
-	c.Cost += InsertCost
-	c.Counts[INSERT]++
+// normal Levenshtein distance
+func Lsd(a, b string) float64 {
+	d, _ := DistanceWithDetail(a, b)
+	return d
 }
 
-func (ec EditCounts) weighted(p LevenshteinParam) float64 {
-	return float64(ec[INSERT])*p.Insert + float64(ec[DELETE])*p.Delete + float64(ec[REPLACE])*p.Replace
-}
-
-func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
-	cell := diagonal
-	et := NONE
-	if aRune != bRune {
-		cell.Cost += ReplaceCost
-		et = REPLACE
-	}
-	if c := above.Cost + InsertCost; c < cell.Cost {
-		cell = above
-		cell.Cost = c
-		et = INSERT
-	}
-	if c := left.Cost + DeleteCost; c < cell.Cost {
-		cell = left
-		cell.Cost = c
-		et = DELETE
-	}
-	cell.Counts[et]++
-	return cell
+// weighted Levenshtein distance
+func (p LevenshteinParam) Distance(a, b string) float64 {
+	_, cnt := DistanceWithDetail(a, b)
+	return cnt.weighted(p)
 }
 
 func DistanceWithDetail(a, b string) (float64, EditCounts) {
@@ -83,16 +58,6 @@ func DistanceWithDetail(a, b string) (float64, EditCounts) {
 	}
 
 	return costRow[len(costRow)-1].Cost, costRow[len(costRow)-1].Counts
-}
-
-func (p LevenshteinParam) Distance(a, b string) float64 {
-	_, cnt := DistanceWithDetail(a, b)
-	return cnt.weighted(p)
-}
-
-func Lsd(a, b string) float64 {
-	d, _ := DistanceWithDetail(a, b)
-	return d
 }
 
 func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest string, distance float64) {
@@ -142,27 +107,6 @@ func (p LevenshteinParam) Evaluate(findStrs []string, collectCases map[string]st
 	return
 }
 
-func csv2Records(filename string) (records [][]string, err error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	for {
-		rec, err := reader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-
-		records = append(records, rec)
-	}
-	return records, nil
-}
-
 // patternCsvFilename:
 // "some string1","pattern1"
 // "some string2","pattern2"
@@ -199,4 +143,73 @@ func (p LevenshteinParam) EvaluateByCSV(patternCsvFilename string, findStrCsvFil
 
 	rate, reports := p.Evaluate(findStrs, patternDict)
 	return rate, reports, nil
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+// private
+
+const (
+	insertCost  = 1
+	deleteCost  = 1
+	replaceCost = 1
+)
+
+func (ec *EditCounts) inc(t EditType) {
+	ec[t]++
+}
+
+func (ec EditCounts) weighted(p LevenshteinParam) float64 {
+	return float64(ec.Get(INSERT))*p.Insert + float64(ec.Get(DELETE))*p.Delete + float64(ec.Get(REPLACE))*p.Replace
+}
+
+type editCell struct {
+	Cost   float64
+	Counts EditCounts
+}
+
+func (c *editCell) incIns() {
+	c.Cost += insertCost
+	c.Counts.inc(INSERT)
+}
+
+func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
+	cell := diagonal
+	et := NONE
+	if aRune != bRune {
+		cell.Cost += replaceCost
+		et = REPLACE
+	}
+	if c := above.Cost + insertCost; c < cell.Cost {
+		cell = above
+		cell.Cost = c
+		et = INSERT
+	}
+	if c := left.Cost + deleteCost; c < cell.Cost {
+		cell = left
+		cell.Cost = c
+		et = DELETE
+	}
+	cell.Counts.inc(et)
+	return cell
+}
+
+func csv2Records(filename string) (records [][]string, err error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	for {
+		rec, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		records = append(records, rec)
+	}
+	return records, nil
 }
