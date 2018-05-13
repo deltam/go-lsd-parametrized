@@ -39,6 +39,10 @@ func (c *editCell) incIns() {
 	c.Counts[INSERT]++
 }
 
+func (ec EditCounts) weighted(p LevenshteinParam) float64 {
+	return float64(ec[INSERT])*p.Insert + float64(ec[DELETE])*p.Delete + float64(ec[REPLACE])*p.Replace
+}
+
 func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
 	cell := diagonal
 	et := NONE
@@ -83,7 +87,7 @@ func DistanceWithDetail(a, b string) (float64, EditCounts) {
 
 func (p LevenshteinParam) Distance(a, b string) float64 {
 	_, cnt := DistanceWithDetail(a, b)
-	return float64(cnt[INSERT])*p.Insert + float64(cnt[DELETE])*p.Delete + float64(cnt[REPLACE])*p.Replace
+	return cnt.weighted(p)
 }
 
 func Lsd(a, b string) float64 {
