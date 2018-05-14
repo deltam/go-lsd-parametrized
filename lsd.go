@@ -28,18 +28,18 @@ func (ec EditCounts) Get(t EditType) int {
 }
 
 // normal Levenshtein distance
-func Lsd(a, b string) float64 {
-	d, _ := DistanceWithDetail(a, b)
+func Lsd(a, b string) int {
+	d, _ := CountEdit(a, b)
 	return d
 }
 
 // weighted Levenshtein distance
 func (p LevenshteinParam) Distance(a, b string) float64 {
-	_, cnt := DistanceWithDetail(a, b)
+	_, cnt := CountEdit(a, b)
 	return cnt.weighted(p)
 }
 
-func DistanceWithDetail(a, b string) (float64, EditCounts) {
+func CountEdit(a, b string) (int, EditCounts) {
 	ar, br := []rune(a), []rune(b)
 	costRow := make([]editCell, len(ar)+1)
 	for i := 1; i < len(costRow); i++ {
@@ -153,7 +153,7 @@ func (ec EditCounts) weighted(p LevenshteinParam) float64 {
 }
 
 type editCell struct {
-	Cost   float64
+	Cost   int
 	Counts EditCounts
 }
 

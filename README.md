@@ -29,7 +29,7 @@ func main() {
 ```sh
 $ go run main.go
 compare string: kitten, shitting
-normal lsd = 4.000000
+normal lsd = 4
 custom lsd = 0.220000
 ```
 

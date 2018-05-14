@@ -10,11 +10,11 @@ func equals(a, b float64) bool {
 	return math.Abs(a-b) < epsilon
 }
 
-func TestLevesteinParam_DistanceWithDetail(t *testing.T) {
+func TestLevesteinParam_CountEdit(t *testing.T) {
 	testdata := []struct {
 		A    string
 		B    string
-		Cost float64
+		Cost int
 		Edit [4]int
 	}{
 		{"a", "aaa", 2, EditCounts{2, 0, 0, 1}},
@@ -36,9 +36,9 @@ func TestLevesteinParam_DistanceWithDetail(t *testing.T) {
 	}
 
 	for i, d := range testdata {
-		c, mt := DistanceWithDetail(d.A, d.B)
-		if !equals(c, d.Cost) {
-			t.Errorf("%d: lsd(\"%s\", \"%s\") = %f, want %f", i, d.A, d.B, c, d.Cost)
+		c, mt := CountEdit(d.A, d.B)
+		if c != d.Cost {
+			t.Errorf("%d: lsd(\"%s\", \"%s\") = %d, want %d", i, d.A, d.B, c, d.Cost)
 		}
 		if !eqEdit(mt, d.Edit) {
 			t.Errorf("%d: lsd_edit(\"%s\", \"%s\") = %v, want %v", i, d.A, d.B, mt, d.Edit)
@@ -79,7 +79,7 @@ func TestLsd(t *testing.T) {
 	testdata := []struct {
 		A    string
 		B    string
-		Cost float64
+		Cost int
 	}{
 		{"book", "back", 2},
 		{"こんにちは", "こんばんは", 2},
@@ -87,8 +87,8 @@ func TestLsd(t *testing.T) {
 	}
 
 	for _, d := range testdata {
-		if c := Lsd(d.A, d.B); !equals(c, d.Cost) {
-			t.Errorf("lsd(\"%s\", \"%s\") = %f, want 2", d.A, d.B, d.Cost)
+		if c := Lsd(d.A, d.B); c != d.Cost {
+			t.Errorf("lsd(\"%s\", \"%s\") = %d, want 2", d.A, d.B, d.Cost)
 		}
 	}
 }
