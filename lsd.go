@@ -44,13 +44,13 @@ func DistanceWithDetail(a, b string) (float64, EditCounts) {
 	costRow := make([]editCell, len(ar)+1)
 	for i := 1; i < len(costRow); i++ {
 		costRow[i] = costRow[i-1]
-		costRow[i].incIns()
+		costRow[i].inc(INSERT)
 	}
 
 	next := make([]editCell, len(costRow))
 	for bc := 1; bc < len(br)+1; bc++ {
 		next[0] = costRow[0]
-		next[0].incIns()
+		next[0].inc(INSERT)
 		for i := 1; i < len(next); i++ {
 			next[i] = cost(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
 		}
@@ -148,16 +148,6 @@ func (p LevenshteinParam) EvaluateByCSV(patternCsvFilename string, findStrCsvFil
 /////////////////////////////////////////////////////////////////////////////////////
 // private
 
-const (
-	insertCost  = 1
-	deleteCost  = 1
-	replaceCost = 1
-)
-
-func (ec *EditCounts) inc(t EditType) {
-	ec[t]++
-}
-
 func (ec EditCounts) weighted(p LevenshteinParam) float64 {
 	return float64(ec.Get(INSERT))*p.Insert + float64(ec.Get(DELETE))*p.Delete + float64(ec.Get(REPLACE))*p.Replace
 }
@@ -167,38 +157,35 @@ type editCell struct {
 	Counts EditCounts
 }
 
-func (c *editCell) incIns() {
-	c.Cost += insertCost
-	c.Counts.inc(INSERT)
+func (c *editCell) inc(t EditType) {
+	if t != NONE {
+		c.Cost++
+	}
+	c.Counts[t]++
 }
 
 func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
 	rep := int(diagonal.Cost) - diagonal.Counts[NONE]
+	rept := NONE
 	if aRune != bRune {
-		rep += replaceCost
+		rep++
+		rept = REPLACE
 	}
-	ins := int(above.Cost) + insertCost - above.Counts[NONE]
-	del := int(left.Cost) + deleteCost - left.Counts[NONE]
+	ins := int(above.Cost) + 1 - above.Counts[NONE]
+	del := int(left.Cost) + 1 - left.Counts[NONE]
 
-	var minCell editCell
-	minCell = diagonal
-	if aRune != bRune {
-		minCell.Cost += replaceCost
-		minCell.Counts.inc(REPLACE)
-	} else {
-		minCell.Counts.inc(NONE)
-	}
+	minCell := diagonal
+	minEdit := rept
 	if ins < rep {
 		minCell = above
-		minCell.Cost += insertCost
-		minCell.Counts.inc(INSERT)
+		minEdit = INSERT
 	}
 	if del < ins {
 		minCell = left
-		minCell.Cost += deleteCost
-		minCell.Counts.inc(DELETE)
+		minEdit = DELETE
 	}
 
+	minCell.inc(minEdit)
 	return minCell
 }
 
