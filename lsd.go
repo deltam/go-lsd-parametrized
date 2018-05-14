@@ -173,24 +173,33 @@ func (c *editCell) incIns() {
 }
 
 func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
-	cell := diagonal
-	et := NONE
+	rep := int(diagonal.Cost) - diagonal.Counts[NONE]
 	if aRune != bRune {
-		cell.Cost += replaceCost
-		et = REPLACE
+		rep += replaceCost
 	}
-	if c := above.Cost + insertCost; c < cell.Cost {
-		cell = above
-		cell.Cost = c
-		et = INSERT
+	ins := int(above.Cost) + insertCost - above.Counts[NONE]
+	del := int(left.Cost) + deleteCost - left.Counts[NONE]
+
+	var minCell editCell
+	minCell = diagonal
+	if aRune != bRune {
+		minCell.Cost += replaceCost
+		minCell.Counts.inc(REPLACE)
+	} else {
+		minCell.Counts.inc(NONE)
 	}
-	if c := left.Cost + deleteCost; c < cell.Cost {
-		cell = left
-		cell.Cost = c
-		et = DELETE
+	if ins < rep {
+		minCell = above
+		minCell.Cost += insertCost
+		minCell.Counts.inc(INSERT)
 	}
-	cell.Counts.inc(et)
-	return cell
+	if del < ins {
+		minCell = left
+		minCell.Cost += deleteCost
+		minCell.Counts.inc(DELETE)
+	}
+
+	return minCell
 }
 
 func csv2Records(filename string) (records [][]string, err error) {

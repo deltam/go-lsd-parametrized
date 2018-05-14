@@ -17,6 +17,9 @@ func TestLevesteinParam_DistanceWithDetail(t *testing.T) {
 		Cost float64
 		Edit [4]int
 	}{
+		{"a", "aaa", 2, EditCounts{2, 0, 0, 1}},
+		{"aaa", "a", 2, EditCounts{0, 2, 0, 1}},
+		{"aaaaa", "aaa", 2, EditCounts{0, 2, 0, 3}},
 		{"book", "back", 2, EditCounts{0, 0, 2, 2}},
 		{"book", "backs", 3, EditCounts{1, 0, 2, 2}},
 		{"こんにちは", "こんばんは", 2, EditCounts{0, 0, 2, 3}},
@@ -50,6 +53,9 @@ func TestLevesteinParam_Distance(t *testing.T) {
 		B     string
 		Cost  float64
 	}{
+		{LevenshteinParam{Insert: 1, Delete: 0, Replace: 0}, "a", "aaa", 2},
+		{LevenshteinParam{Insert: 0, Delete: 1, Replace: 0}, "aaa", "a", 2},
+		{LevenshteinParam{Insert: 0, Delete: 0, Replace: 1}, "aaa", "abc", 2},
 		{LevenshteinParam{Insert: 1, Delete: 1, Replace: 1}, "book", "back", 2},
 		{LevenshteinParam{Insert: 1, Delete: 1, Replace: 0.1}, "book", "back", 0.2},
 		{LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 1}, "book", "back", 2},
