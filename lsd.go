@@ -97,17 +97,16 @@ func (c *editCell) inc(t EditType) {
 }
 
 func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
-	rep := int(diagonal.Cost) - diagonal.Counts[NONE]
-	rept := NONE
+	ins := above.Cost + 1 - above.Counts.Get(NONE)
+	del := left.Cost + 1 - left.Counts.Get(NONE)
+	rep := diagonal.Cost - diagonal.Counts.Get(NONE)
+	minEdit := NONE
 	if aRune != bRune {
 		rep++
-		rept = REPLACE
+		minEdit = REPLACE
 	}
-	ins := int(above.Cost) + 1 - above.Counts[NONE]
-	del := int(left.Cost) + 1 - left.Counts[NONE]
 
 	minCell := diagonal
-	minEdit := rept
 	if ins < rep {
 		minCell = above
 		minEdit = INSERT
