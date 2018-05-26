@@ -1,11 +1,19 @@
+// Calculate Levestein Distance by specific parameters written in Go.
 package lsd_parametrized
 
+// Function of measure distance between 2 strings
+type DistanceMeasurer interface {
+	Distance(string, string) float64
+}
+
+// Normal & Weighted Levenshtein distance parameters
 type LevenshteinParam struct {
 	Insert  float64
 	Delete  float64
 	Replace float64
 }
 
+// type: insert, delete, replace, none
 type EditType int
 
 const (
@@ -15,24 +23,49 @@ const (
 	NONE
 )
 
+// Aggregate by editing types
 type EditCounts [4]int
 
-func (ec EditCounts) Get(t EditType) int {
-	return ec[t]
-}
-
-// normal Levenshtein distance
+// Normal Levenshtein distance
 func Lsd(a, b string) int {
 	d, _ := CountEdit(a, b)
 	return d
 }
 
-// weighted Levenshtein distance
+// Weighted Levenshtein distance
 func (p LevenshteinParam) Distance(a, b string) float64 {
 	_, cnt := CountEdit(a, b)
-	return cnt.weighted(p)
+	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
 }
 
+// Find the nearest string in the specified distance measurer
+func FindNearest(dm DistanceMeasurer, raw string, subjects []string) (nearest string, distance float64) {
+	type result struct {
+		str  string
+		dist float64
+	}
+
+	ch := make(chan result)
+	for _, sub := range subjects {
+		go func(s string) {
+			d := dm.Distance(raw, s)
+			ch <- result{s, d}
+		}(sub)
+	}
+
+	initFlag := true
+	for i := 0; i < len(subjects); i++ {
+		r := <-ch
+		if initFlag || r.dist < distance {
+			distance = r.dist
+			nearest = r.str
+			initFlag = false
+		}
+	}
+	return
+}
+
+// Aggregate the minimum number of edits to change from a to b
 func CountEdit(a, b string) (int, EditCounts) {
 	ar, br := []rune(a), []rune(b)
 	costRow := make([]editCell, len(ar)+1)
@@ -54,36 +87,12 @@ func CountEdit(a, b string) (int, EditCounts) {
 	return costRow[len(costRow)-1].Cost, costRow[len(costRow)-1].Counts
 }
 
-func (p LevenshteinParam) FindNearest(raw string, subjects []string) (nearest string, distance float64) {
-	type lsdResult struct {
-		Str      string
-		Distance float64
-	}
-
-	ch := make(chan lsdResult)
-	for _, sub := range subjects {
-		go func(s string) {
-			d := p.Distance(raw, s)
-			ch <- lsdResult{Str: s, Distance: d}
-		}(sub)
-	}
-
-	initFlag := true
-	for i := 0; i < len(subjects); i++ {
-		result := <-ch
-		if initFlag || result.Distance < distance {
-			distance = result.Distance
-			nearest = result.Str
-			initFlag = false
-		}
-	}
-	return
+// Get the number of specified edit
+func (ec EditCounts) Get(t EditType) int {
+	return ec[t]
 }
 
-func (ec EditCounts) weighted(p LevenshteinParam) float64 {
-	return float64(ec.Get(INSERT))*p.Insert + float64(ec.Get(DELETE))*p.Delete + float64(ec.Get(REPLACE))*p.Replace
-}
-
+// cost & number of edits
 type editCell struct {
 	Cost   int
 	Counts EditCounts
@@ -96,6 +105,7 @@ func (c *editCell) inc(t EditType) {
 	c.Counts[t]++
 }
 
+// Calculate current cost & number of edits
 func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
 	ins := above.Cost + 1 - above.Counts.Get(NONE)
 	del := left.Cost + 1 - left.Counts.Get(NONE)

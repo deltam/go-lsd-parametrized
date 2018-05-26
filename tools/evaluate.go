@@ -15,9 +15,9 @@ type FailedReport struct {
 	Dist       float64
 }
 
-func Evaluate(p LevenshteinParam, findStrs []string, collectCases map[string]string) (succeedRate float64, reports []FailedReport) {
+func Evaluate(dm DistanceMeasurer, findStrs []string, collectCases map[string]string) (succeedRate float64, reports []FailedReport) {
 	for s, succeedStr := range collectCases {
-		ans, dist := p.FindNearest(s, findStrs)
+		ans, dist := FindNearest(dm, s, findStrs)
 		if ans != succeedStr {
 			reports = append(reports, FailedReport{Raw: s, FailedStr: ans, SucceedStr: succeedStr, Dist: dist})
 		}
@@ -35,7 +35,7 @@ func Evaluate(p LevenshteinParam, findStrs []string, collectCases map[string]str
 // "pattern1"
 // "pattern2"
 // ...
-func EvaluateByCSV(p LevenshteinParam, patternCsvFilename string, findStrCsvFilename string) (float64, []FailedReport, error) {
+func EvaluateByCSV(dm DistanceMeasurer, patternCsvFilename string, findStrCsvFilename string) (float64, []FailedReport, error) {
 	patternDict := make(map[string]string)
 	records, err := csv2Records(patternCsvFilename)
 	if err != nil {
@@ -60,7 +60,7 @@ func EvaluateByCSV(p LevenshteinParam, patternCsvFilename string, findStrCsvFile
 		}
 	}
 
-	rate, reports := Evaluate(p, findStrs, patternDict)
+	rate, reports := Evaluate(dm, findStrs, patternDict)
 	return rate, reports, nil
 }
 

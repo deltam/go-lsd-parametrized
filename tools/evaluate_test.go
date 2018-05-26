@@ -14,11 +14,12 @@ func TestLevesteinParam_Evaluate(t *testing.T) {
 		"back",
 		"cook",
 	}
-	evalCases := make(map[string]string)
-	evalCases["book"] = "book"
-	evalCases["back"] = "back"
-	evalCases["cook"] = "cook"
-	evalCases["backs"] = "cook" // error case
+	evalCases := map[string]string{
+		"book":  "book",
+		"back":  "back",
+		"cook":  "cook",
+		"backs": "cook", // error case
+	}
 
 	rate, reports := Evaluate(param, findStrs, evalCases)
 	if rate != 3.0/4.0 {
