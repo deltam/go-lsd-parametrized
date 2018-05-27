@@ -8,6 +8,7 @@ import (
 	. "github.com/deltam/go-lsd-parametrized"
 )
 
+// Report of failed string classification
 type FailedReport struct {
 	Raw        string
 	FailedStr  string
@@ -15,6 +16,7 @@ type FailedReport struct {
 	Dist       float64
 }
 
+// Evaluate string classification by specified distance function
 func Evaluate(dm DistanceMeasurer, findStrs []string, collectCases map[string]string) (succeedRate float64, reports []FailedReport) {
 	for s, succeedStr := range collectCases {
 		ans, dist := FindNearest(dm, s, findStrs)
@@ -26,15 +28,19 @@ func Evaluate(dm DistanceMeasurer, findStrs []string, collectCases map[string]st
 	return
 }
 
-// patternCsvFilename:
-// "some string1","pattern1"
-// "some string2","pattern2"
-// ...
-//
-// findStrCsvFilename:
-// "pattern1"
-// "pattern2"
-// ...
+/*
+ Evaluate string classification by specified distance function & string csv files
+
+ patternCsvFilename:
+  "some string1","pattern1"
+  "some string2","pattern2"
+  ...
+
+ findStrCsvFilename:
+  "pattern1"
+  "pattern2"
+  ...
+*/
 func EvaluateByCSV(dm DistanceMeasurer, patternCsvFilename string, findStrCsvFilename string) (float64, []FailedReport, error) {
 	patternDict := make(map[string]string)
 	records, err := csv2Records(patternCsvFilename)
