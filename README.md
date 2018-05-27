@@ -18,7 +18,7 @@ func main() {
     fmt.Printf("compare string: %s, %s\n", a, b)
 
     // normal lsd
-    fmt.Printf("normal lsd = %f\n", Lsd(a, b))
+    fmt.Printf("normal lsd = %d\n", Lsd(a, b))
 
     // custom lsd
     params := LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 0.01}
