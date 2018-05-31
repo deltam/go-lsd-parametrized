@@ -39,7 +39,7 @@ func (p LevenshteinParam) Distance(a, b string) float64 {
 }
 
 // Find the nearest string in the specified distance measurer
-func FindNearest(dm DistanceMeasurer, raw string, subjects []string) (nearest string, distance float64) {
+func Nearest(dm DistanceMeasurer, raw string, subjects []string) (nearest string, distance float64) {
 	type result struct {
 		str  string
 		dist float64

@@ -19,7 +19,7 @@ type FailedReport struct {
 // Evaluate string classification by specified distance function
 func Evaluate(dm DistanceMeasurer, findStrs []string, collectCases map[string]string) (succeedRate float64, reports []FailedReport) {
 	for s, succeedStr := range collectCases {
-		ans, dist := FindNearest(dm, s, findStrs)
+		ans, dist := Nearest(dm, s, findStrs)
 		if ans != succeedStr {
 			reports = append(reports, FailedReport{Raw: s, FailedStr: ans, SucceedStr: succeedStr, Dist: dist})
 		}
