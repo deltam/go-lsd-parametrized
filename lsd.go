@@ -6,31 +6,17 @@ type DistanceMeasurer interface {
 	Distance(string, string) float64
 }
 
+// Lsd returns normal Levenshtein distance
+func Lsd(a, b string) int {
+	d, _ := CountEdit(a, b)
+	return d
+}
+
 // LevenshteinParam represents normal & weighted Levenshtein distance parameters
 type LevenshteinParam struct {
 	Insert  float64
 	Delete  float64
 	Replace float64
-}
-
-// EditType represents authorized editing means in Levenshtein distance
-type EditType int
-
-// Authorized editing means: insert, delete, replace, none
-const (
-	INSERT EditType = iota
-	DELETE
-	REPLACE
-	NONE
-)
-
-// EditCounts represents aggregating by editing types
-type EditCounts [4]int
-
-// Lsd returns normal Levenshtein distance
-func Lsd(a, b string) int {
-	d, _ := CountEdit(a, b)
-	return d
 }
 
 // Distance returns weighted Levenshtein distance
@@ -66,6 +52,25 @@ func Nearest(dm DistanceMeasurer, raw string, subjects []string) (nearest string
 	return
 }
 
+// EditType represents authorized editing means in Levenshtein distance
+type EditType int
+
+// Authorized editing means: insert, delete, replace, none
+const (
+	INSERT EditType = iota
+	DELETE
+	REPLACE
+	NONE
+)
+
+// EditCounts represents aggregating by editing types
+type EditCounts [4]int
+
+// Get the number of specified edit
+func (ec EditCounts) Get(t EditType) int {
+	return ec[t]
+}
+
 // CountEdit aggregates the minimum number of edits to change from a to b
 func CountEdit(a, b string) (int, EditCounts) {
 	ar, br := []rune(a), []rune(b)
@@ -86,11 +91,6 @@ func CountEdit(a, b string) (int, EditCounts) {
 	}
 
 	return costRow[len(costRow)-1].Cost, costRow[len(costRow)-1].Counts
-}
-
-// Get the number of specified edit
-func (ec EditCounts) Get(t EditType) int {
-	return ec[t]
 }
 
 // editCell represents cost & number of edits
