@@ -1,5 +1,5 @@
 // Calculate Levestein Distance by specific parameters written in Go.
-package lsd_parametrized
+package lsdp
 
 // DistanceMeasurer provides measurement of the distance between 2 strings
 type DistanceMeasurer interface {

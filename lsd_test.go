@@ -1,4 +1,4 @@
-package lsd_parametrized
+package lsdp
 
 import (
 	"math"
