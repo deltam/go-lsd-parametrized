@@ -10,7 +10,7 @@ func equals(a, b float64) bool {
 	return math.Abs(a-b) < epsilon
 }
 
-func TestLevesteinParam_CountEdit(t *testing.T) {
+func TestCountEdit(t *testing.T) {
 	testdata := []struct {
 		A    string
 		B    string
@@ -93,7 +93,7 @@ func TestLsd(t *testing.T) {
 	}
 }
 
-func TestLevesteinParam_Nearest(t *testing.T) {
+func TestNearest(t *testing.T) {
 	answers := []string{
 		"book",
 		"back",
