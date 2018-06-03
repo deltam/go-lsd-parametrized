@@ -75,6 +75,29 @@ func TestLevesteinParam_Distance(t *testing.T) {
 	}
 }
 
+func TestNormalized(t *testing.T) {
+	testdata := []struct {
+		A    string
+		B    string
+		Dist float64
+	}{
+		{"", "", 0},
+		{"", "a", 1},
+		{"a", "", 1},
+		{"", "aa", 1},
+		{"a", "b", 1},
+		{"ab", "bb", 0.5},
+		{"ab", "a", 0.5},
+	}
+
+	nd := Normalized(LevenshteinParam{Insert: 1, Delete: 1, Replace: 1})
+	for _, td := range testdata {
+		if d := nd.Distance(td.A, td.B); !equals(d, td.Dist) {
+			t.Errorf(`dist("%s", "%s") = %f, want %f`, td.A, td.B, d, td.Dist)
+		}
+	}
+}
+
 func TestLsd(t *testing.T) {
 	testdata := []struct {
 		A    string

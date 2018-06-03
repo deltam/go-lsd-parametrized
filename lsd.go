@@ -25,6 +25,27 @@ func (p LevenshteinParam) Distance(a, b string) float64 {
 	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
 }
 
+// Normalized returns what wrapped the DistanceMeasurer with nomalize by string length
+func Normalized(dm DistanceMeasurer) DistanceMeasurer {
+	return normalizedParam{wrapped: dm}
+}
+
+type normalizedParam struct {
+	wrapped DistanceMeasurer
+}
+
+func (p normalizedParam) Distance(a, b string) float64 {
+	d := p.wrapped.Distance(a, b)
+	l := len([]rune(a))
+	if lb := len([]rune(b)); l < lb {
+		l = lb
+	}
+	if l == 0 {
+		return d
+	}
+	return d / float64(l)
+}
+
 // Nearest returns the nearest string in the specified distance measurer
 func Nearest(dm DistanceMeasurer, raw string, subjects []string) (nearest string, distance float64) {
 	type result struct {
