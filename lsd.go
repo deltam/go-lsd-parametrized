@@ -1,4 +1,4 @@
-// Calculate Levestein Distance by specific parameters written in Go.
+// Package lsdp is a Levenshtein distance and its extended interface
 package lsdp
 
 // DistanceMeasurer provides measurement of the distance between 2 strings
