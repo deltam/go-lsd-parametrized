@@ -111,27 +111,27 @@ func CountEdit(a, b string) (int, EditCounts) {
 		costRow, next = next, costRow
 	}
 
-	return costRow[len(costRow)-1].Cost, costRow[len(costRow)-1].Counts
+	return costRow[len(costRow)-1].cost, costRow[len(costRow)-1].count
 }
 
 // editCell represents cost & number of edits
 type editCell struct {
-	Cost   int
-	Counts EditCounts
+	cost  int
+	count EditCounts
 }
 
 func (c *editCell) inc(t EditType) {
 	if t != NONE {
-		c.Cost++
+		c.cost++
 	}
-	c.Counts[t]++
+	c.count[t]++
 }
 
 // cost returns current cost & number of edits
 func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
-	ins := above.Cost + 1 - above.Counts.Get(NONE)
-	del := left.Cost + 1 - left.Counts.Get(NONE)
-	rep := diagonal.Cost - diagonal.Counts.Get(NONE)
+	ins := above.cost + 1 - above.count.Get(NONE)
+	del := left.cost + 1 - left.count.Get(NONE)
+	rep := diagonal.cost - diagonal.count.Get(NONE)
 	minEdit := NONE
 	if aRune != bRune {
 		rep++
