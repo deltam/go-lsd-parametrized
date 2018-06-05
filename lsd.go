@@ -6,7 +6,7 @@ type DistanceMeasurer interface {
 	Distance(string, string) float64
 }
 
-// Lsd returns normal Levenshtein distance
+// Lsd returns standard Levenshtein distance
 func Lsd(a, b string) int {
 	d, _ := CountEdit(a, b)
 	return d
