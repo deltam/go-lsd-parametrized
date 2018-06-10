@@ -94,6 +94,33 @@ func (ec EditCounts) Get(t EditType) int {
 
 // CountEdit aggregates the minimum number of edits to change from a to b
 func CountEdit(a, b string) (int, EditCounts) {
+	result := accumulateCost(a, b, func(aRune, bRune rune, diagonal, above, left editCell) editCell {
+		ins := above.cost + 1 - float64(above.count.Get(NONE))
+		del := left.cost + 1 - float64(left.count.Get(NONE))
+		rep := diagonal.cost - float64(diagonal.count.Get(NONE))
+		minEdit := NONE
+		if aRune != bRune {
+			rep++
+			minEdit = REPLACE
+		}
+
+		minCell := diagonal
+		if ins < rep {
+			minCell = above
+			minEdit = INSERT
+		}
+		if del < ins {
+			minCell = left
+			minEdit = DELETE
+		}
+
+		minCell.inc(minEdit)
+		return minCell
+	})
+	return int(result.cost), result.count
+}
+
+func accumulateCost(a, b string, costf func(rune, rune, editCell, editCell, editCell) editCell) editCell {
 	ar, br := []rune(a), []rune(b)
 	costRow := make([]editCell, len(ar)+1)
 	for i := 1; i < len(costRow); i++ {
@@ -106,17 +133,17 @@ func CountEdit(a, b string) (int, EditCounts) {
 		next[0] = costRow[0]
 		next[0].inc(INSERT)
 		for i := 1; i < len(next); i++ {
-			next[i] = cost(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
+			next[i] = costf(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
 		}
 		costRow, next = next, costRow
 	}
 
-	return costRow[len(costRow)-1].cost, costRow[len(costRow)-1].count
+	return costRow[len(costRow)-1]
 }
 
 // editCell represents cost & number of edits
 type editCell struct {
-	cost  int
+	cost  float64
 	count EditCounts
 }
 
@@ -125,29 +152,4 @@ func (c *editCell) inc(t EditType) {
 		c.cost++
 	}
 	c.count[t]++
-}
-
-// cost returns current cost & number of edits
-func cost(aRune, bRune rune, diagonal, above, left editCell) editCell {
-	ins := above.cost + 1 - above.count.Get(NONE)
-	del := left.cost + 1 - left.count.Get(NONE)
-	rep := diagonal.cost - diagonal.count.Get(NONE)
-	minEdit := NONE
-	if aRune != bRune {
-		rep++
-		minEdit = REPLACE
-	}
-
-	minCell := diagonal
-	if ins < rep {
-		minCell = above
-		minEdit = INSERT
-	}
-	if del < ins {
-		minCell = left
-		minEdit = DELETE
-	}
-
-	minCell.inc(minEdit)
-	return minCell
 }
