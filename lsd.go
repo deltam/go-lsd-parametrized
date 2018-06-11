@@ -12,14 +12,14 @@ func Lsd(a, b string) int {
 	return d
 }
 
-// LevenshteinParam represents normal & weighted Levenshtein distance parameters
+// LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
 type LevenshteinParam struct {
 	Insert  float64
 	Delete  float64
 	Replace float64
 }
 
-// Distance returns weighted Levenshtein distance
+// Distance returns Levenshtein distance
 func (p LevenshteinParam) Distance(a, b string) float64 {
 	_, cnt := CountEdit(a, b)
 	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
