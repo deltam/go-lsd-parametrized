@@ -20,9 +20,9 @@ func main() {
     // standard
     fmt.Printf("standard = %d\n", Lsd(a, b))
 
-    // weighted
-    wd := LevenshteinParam{Insert: 0.1, Delete: 1, Replace: 0.01}
-    fmt.Printf("weighted = %f\n", wd.Distance(a, b))
+	// weighted
+	wd := Weights{Insert: 0.1, Delete: 1, Replace: 0.01}
+	fmt.Printf("weighted = %f\n", wd.Distance(a, b))
 
     // weighted and normalized
     nd := Normalized(wd)

@@ -12,6 +12,31 @@ func Lsd(a, b string) int {
 	return d
 }
 
+// Weights represents cost parameters for weighted Levenshtein distance
+type Weights struct {
+	Insert  float64
+	Delete  float64
+	Replace float64
+}
+
+// Distance returns weighted Levenshtein distance
+func (w Weights) Distance(a, b string) float64 {
+	result := accumulateCost(a, b, func(ar, br rune, diagonal, above, left editCell) editCell {
+		c := diagonal.cost
+		if ar != br {
+			c += w.Replace
+		}
+		if ic := above.cost + w.Insert; ic < c {
+			c = ic
+		}
+		if dc := left.cost + w.Delete; dc < c {
+			c = dc
+		}
+		return editCell{cost: c}
+	})
+	return result.cost
+}
+
 // LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
 type LevenshteinParam struct {
 	Insert  float64

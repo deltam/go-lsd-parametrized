@@ -46,6 +46,31 @@ func TestCountEdit(t *testing.T) {
 	}
 }
 
+func TestWeights_Distance(t *testing.T) {
+	testdata := []struct {
+		W    Weights
+		A    string
+		B    string
+		Cost float64
+	}{
+		{Weights{Insert: 1, Delete: 1, Replace: 1}, "", "", 0},
+		{Weights{Insert: 1, Delete: 1, Replace: 1}, "", "a", 1},
+		{Weights{Insert: 1, Delete: 1, Replace: 1}, "a", "", 1},
+		{Weights{Insert: 1, Delete: 1, Replace: 1}, "a", "a", 0},
+		{Weights{Insert: 1, Delete: 1, Replace: 1}, "back", "books", 3},
+		{Weights{Insert: 1, Delete: 1, Replace: 0}, "back", "books", 1},
+		{Weights{Insert: 1, Delete: 0, Replace: 1}, "back", "books", 3},
+		{Weights{Insert: 0, Delete: 1, Replace: 1}, "back", "books", 2},
+		{Weights{Insert: 1, Delete: 0, Replace: 1}, "back", "boo", 2},
+	}
+
+	for i, d := range testdata {
+		if c := d.W.Distance(d.A, d.B); !equals(c, d.Cost) {
+			t.Errorf("%d: weighted_lsd(\"%s\", \"%s\") = %f, want %f", i, d.A, d.B, c, d.Cost)
+		}
+	}
+}
+
 func TestLevesteinParam_Distance(t *testing.T) {
 	testdata := []struct {
 		Param LevenshteinParam
