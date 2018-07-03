@@ -37,19 +37,6 @@ func (w Weights) Distance(a, b string) float64 {
 	return result.cost
 }
 
-// LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
-type LevenshteinParam struct {
-	Insert  float64
-	Delete  float64
-	Replace float64
-}
-
-// Distance returns Levenshtein distance
-func (p LevenshteinParam) Distance(a, b string) float64 {
-	_, cnt := CountEdit(a, b)
-	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
-}
-
 // Normalized returns what wrapped the DistanceMeasurer with nomalize by string length
 func Normalized(dm DistanceMeasurer) DistanceMeasurer {
 	return normalizedParam{wrapped: dm}
@@ -69,6 +56,19 @@ func (p normalizedParam) Distance(a, b string) float64 {
 		return d
 	}
 	return d / float64(l)
+}
+
+// LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
+type LevenshteinParam struct {
+	Insert  float64
+	Delete  float64
+	Replace float64
+}
+
+// Distance returns Levenshtein distance
+func (p LevenshteinParam) Distance(a, b string) float64 {
+	_, cnt := CountEdit(a, b)
+	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
 }
 
 // Nearest returns the nearest string in the specified distance measurer
