@@ -123,7 +123,7 @@ func accumulateCost(a, b string, costf func(rune, rune, editCell, editCell, edit
 	costRow := make([]editCell, len(ar)+1)
 	for i := 1; i < len(costRow); i++ {
 		costRow[i] = costRow[i-1]
-		costRow[i].inc(INSERT)
+		costRow[i].inc(DELETE)
 	}
 
 	next := make([]editCell, len(costRow))
