@@ -23,7 +23,7 @@ func TestNearest(t *testing.T) {
 	for i, td := range testdata {
 		ans, score := Nearest(param, td.Raw, answers)
 		if ans != td.Answer {
-			t.Errorf(`FindNearest error: i=%d found "%s"(%f), want "%s"`, i, ans, score, td.Answer)
+			t.Errorf(`Nearest error: i=%d found "%s"(%f), want "%s"`, i, ans, score, td.Answer)
 		}
 	}
 }

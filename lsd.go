@@ -8,8 +8,8 @@ type DistanceMeasurer interface {
 
 // Lsd returns standard Levenshtein distance
 func Lsd(a, b string) int {
-	d, _ := CountEdit(a, b)
-	return d
+	wd := &Weights{1, 1, 1}
+	return int(wd.Distance(a, b))
 }
 
 // Weights represents cost parameters for weighted Levenshtein distance
@@ -21,19 +21,14 @@ type Weights struct {
 
 // Distance returns weighted Levenshtein distance
 func (w Weights) Distance(a, b string) float64 {
-	result := accumulateCost(a, b, func(ar, br rune, diagonal, above, left editCell) editCell {
-		c := diagonal.cost
+	result := accumulateCost(a, b, func(ar, br rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
 		if ar != br {
-			c += w.Replace
+			diagonal.cost += w.Replace
 		}
-		if ic := above.cost + w.Insert; ic < c {
-			c = ic
-		}
-		if dc := left.cost + w.Delete; dc < c {
-			c = dc
-		}
-		return editCell{cost: c}
-	})
+		above.cost += w.Insert
+		left.cost += w.Delete
+		return diagonal, above, left
+	}, lessCost)
 	return result.cost
 }
 
@@ -92,46 +87,44 @@ func (ec EditCounts) Get(t EditType) int {
 
 // CountEdit aggregates the minimum number of edits to change from a to b
 func CountEdit(a, b string) (int, EditCounts) {
-	result := accumulateCost(a, b, func(aRune, bRune rune, diagonal, above, left editCell) editCell {
-		ins := above.cost + 1 - float64(above.count.Get(NONE))
-		del := left.cost + 1 - float64(left.count.Get(NONE))
-		rep := diagonal.cost - float64(diagonal.count.Get(NONE))
-		minEdit := NONE
+	result := accumulateCost(a, b, func(aRune, bRune rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
 		if aRune != bRune {
-			rep++
-			minEdit = REPLACE
+			diagonal.inc(REPLACE)
+		} else {
+			diagonal.count[NONE]++
 		}
-
-		minCell := diagonal
-		if ins < rep {
-			minCell = above
-			minEdit = INSERT
-		}
-		if del < ins {
-			minCell = left
-			minEdit = DELETE
-		}
-
-		minCell.inc(minEdit)
-		return minCell
+		above.inc(INSERT)
+		left.inc(DELETE)
+		return diagonal, above, left
+	}, func(ec1, ec2 editCell) bool {
+		return ec1.cost-float64(ec1.count.Get(NONE)) < ec2.cost-float64(ec2.count.Get(NONE))
 	})
 	return int(result.cost), result.count
 }
 
-func accumulateCost(a, b string, costf func(rune, rune, editCell, editCell, editCell) editCell) editCell {
+type costFunc func(ar, br rune, diagonal, above, left editCell) (rep, ins, del editCell)
+type lessFunc func(a, b editCell) bool
+
+func accumulateCost(a, b string, costf costFunc, less lessFunc) editCell {
 	ar, br := []rune(a), []rune(b)
 	costRow := make([]editCell, len(ar)+1)
+	dummy := editCell{}
 	for i := 1; i < len(costRow); i++ {
-		costRow[i] = costRow[i-1]
-		costRow[i].inc(DELETE)
+		_, _, costRow[i] = costf(ar[i-1], 0, dummy, dummy, costRow[i-1])
 	}
 
 	next := make([]editCell, len(costRow))
 	for bc := 1; bc < len(br)+1; bc++ {
-		next[0] = costRow[0]
-		next[0].inc(INSERT)
+		_, next[0], _ = costf(0, br[bc-1], dummy, costRow[0], dummy)
 		for i := 1; i < len(next); i++ {
-			next[i] = costf(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
+			min, ins, del := costf(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
+			if less(ins, min) {
+				min = ins
+			}
+			if less(del, min) {
+				min = del
+			}
+			next[i] = min
 		}
 		costRow, next = next, costRow
 	}
@@ -150,4 +143,8 @@ func (c *editCell) inc(t EditType) {
 		c.cost++
 	}
 	c.count[t]++
+}
+
+func lessCost(a, b editCell) bool {
+	return a.cost < b.cost
 }

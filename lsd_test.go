@@ -38,10 +38,10 @@ func TestCountEdit(t *testing.T) {
 	for i, d := range testdata {
 		c, mt := CountEdit(d.A, d.B)
 		if c != d.Cost {
-			t.Errorf("%d: lsd(\"%s\", \"%s\") = %d, want %d", i, d.A, d.B, c, d.Cost)
+			t.Errorf(`%d: lsd("%s", "%s") = %d, want %d`, i, d.A, d.B, c, d.Cost)
 		}
 		if !eqEdit(mt, d.Edit) {
-			t.Errorf("%d: lsd_edit(\"%s\", \"%s\") = %v, want %v", i, d.A, d.B, mt, d.Edit)
+			t.Errorf(`%d: lsd_edit("%s", "%s") = %v, want %v`, i, d.A, d.B, mt, d.Edit)
 		}
 	}
 }
@@ -66,7 +66,7 @@ func TestWeights_Distance(t *testing.T) {
 
 	for i, d := range testdata {
 		if c := d.W.Distance(d.A, d.B); !equals(c, d.Cost) {
-			t.Errorf("%d: weighted_lsd(\"%s\", \"%s\") = %f, want %f", i, d.A, d.B, c, d.Cost)
+			t.Errorf(`%d: weighted_lsd("%s", "%s") = %f, want %f`, i, d.A, d.B, c, d.Cost)
 		}
 	}
 }
@@ -78,6 +78,7 @@ func TestLevesteinParam_Distance(t *testing.T) {
 		B     string
 		Cost  float64
 	}{
+		{LevenshteinParam{Insert: 1, Delete: 0, Replace: 0}, "", "a", 1},
 		{LevenshteinParam{Insert: 1, Delete: 0, Replace: 0}, "a", "aaa", 2},
 		{LevenshteinParam{Insert: 0, Delete: 1, Replace: 0}, "aaa", "a", 2},
 		{LevenshteinParam{Insert: 0, Delete: 0, Replace: 1}, "aaa", "abc", 2},
