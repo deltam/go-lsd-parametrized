@@ -26,3 +26,19 @@ func Nearest(dm DistanceMeasurer, raw string, subjects []string) (nearest string
 	}
 	return
 }
+
+// DistanceAll returns slice of distance orig to each strs
+func DistanceAll(dm DistanceMeasurer, orig string, strs []string) []float64 {
+	dists := make([]float64, len(strs))
+	done := make(chan struct{}, len(strs))
+	for i, s := range strs {
+		go func(i int, s string) {
+			dists[i] = dm.Distance(orig, s)
+			done <- struct{}{}
+		}(i, s)
+	}
+	for range strs {
+		<-done
+	}
+	return dists
+}

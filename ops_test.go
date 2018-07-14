@@ -27,3 +27,25 @@ func TestNearest(t *testing.T) {
 		}
 	}
 }
+
+func TestDistanceAll(t *testing.T) {
+	std := Weights{1, 1, 1}
+	testdata := []struct {
+		orig  string
+		strs  []string
+		dists []float64
+	}{
+		{"", []string{"a", "aa", "aaa"}, []float64{1, 2, 3}},
+		{"aa", []string{"aa", "a"}, []float64{0, 1}},
+		{"a", []string{"", "a", "ab"}, []float64{1, 0, 1}},
+	}
+	for i, td := range testdata {
+		ds := DistanceAll(std, td.orig, td.strs)
+		for j, _ := range ds {
+			if td.dists[j] != ds[j] {
+				t.Errorf("%d: DistanceAll() is %v, want %v", i, ds, td.dists)
+				break
+			}
+		}
+	}
+}
