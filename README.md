@@ -27,6 +27,14 @@ func main() {
     // weighted and normalized
     nd := Normalized(wd)
     fmt.Printf("normalized = %f\n", nd.Distance(a, b))
+
+    // weighted by rune
+    wr := ByRune(&Weights{1, 1, 1}).
+        Insert("g", 0.1).
+        Insert("h", 0.01).
+        Replace("k", "s", 0.001).
+        Replace("e", "i", 0.0001)
+    fmt.Printf("rune weight = %f\n", wr.Distance(a, b))
 }
 ```
 
@@ -36,6 +44,7 @@ compare string: kitten, shitting
 standard = 4
 weighted = 0.220000
 normalized = 0.027500
+rune weight = 0.111100
 ```
 
 ## Use Case

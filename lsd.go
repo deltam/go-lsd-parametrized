@@ -32,6 +32,73 @@ func (w Weights) Distance(a, b string) float64 {
 	return result.cost
 }
 
+// ByRune returns weighted levenshtein distance by rune
+func ByRune(w *Weights) *WeightsByRune {
+	return &WeightsByRune{
+		w:       w,
+		insRune: make(map[rune]float64),
+		delRune: make(map[rune]float64),
+		repRune: make(map[[2]rune]float64),
+	}
+}
+
+// WeightsByRune represents weighted levenshtein distance by rune
+type WeightsByRune struct {
+	w       *Weights
+	insRune map[rune]float64
+	delRune map[rune]float64
+	repRune map[[2]rune]float64
+}
+
+// Distance returns weighted levenshtein distance by rune
+func (wr *WeightsByRune) Distance(a, b string) float64 {
+	ret := accumulateCost(a, b, func(ar, br rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
+		if rw, ok := wr.repRune[[2]rune{ar, br}]; ok {
+			diagonal.cost += rw
+		} else if ar != br {
+			diagonal.cost += wr.w.Replace
+		}
+		if rw, ok := wr.insRune[br]; ok {
+			above.cost += rw
+		} else {
+			above.cost += wr.w.Insert
+		}
+		if rw, ok := wr.delRune[ar]; ok {
+			left.cost += rw
+		} else {
+			left.cost += wr.w.Delete
+		}
+		return diagonal, above, left
+	}, lessCost)
+	return ret.cost
+}
+
+// Insert specify cost by insert rune
+func (wr *WeightsByRune) Insert(runeGroup string, insCost float64) *WeightsByRune {
+	for _, r := range runeGroup {
+		wr.insRune[r] = insCost
+	}
+	return wr
+}
+
+// Delete specify cost by delete rune
+func (wr *WeightsByRune) Delete(runeGroup string, delCost float64) *WeightsByRune {
+	for _, r := range runeGroup {
+		wr.delRune[r] = delCost
+	}
+	return wr
+}
+
+// Replace specify cost by replace rune
+func (wr *WeightsByRune) Replace(runeGroupSrc, runeGroupDest string, repCost float64) *WeightsByRune {
+	for _, rs := range runeGroupSrc {
+		for _, rd := range runeGroupDest {
+			wr.repRune[[2]rune{rs, rd}] = repCost
+		}
+	}
+	return wr
+}
+
 // Normalized returns what wrapped the DistanceMeasurer with nomalize by string length
 func Normalized(dm DistanceMeasurer) DistanceMeasurer {
 	return normalizedParam{wrapped: dm}

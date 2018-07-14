@@ -71,6 +71,33 @@ func TestWeights_Distance(t *testing.T) {
 	}
 }
 
+func TestWeightsByRune_Distance(t *testing.T) {
+	std := Weights{1, 1, 1}
+	wrIns := ByRune(&std).Insert("a", 0.1)
+	wrDel := ByRune(&std).Delete("a", 0.01)
+	wrRep := ByRune(&std).Replace("a", "b", 0.001)
+	wrAll := ByRune(&std).Insert("a", 0.1).Delete("a", 0.01).Replace("a", "b", 0.001)
+	testdata := []struct {
+		WR   *WeightsByRune
+		A    string
+		B    string
+		Dist float64
+	}{
+		{wrIns, "", "a", 0.1},
+		{wrIns, "", "aa", 0.2},
+		{wrDel, "a", "", 0.01},
+		{wrDel, "aa", "", 0.02},
+		{wrRep, "a", "b", 0.001},
+		{wrRep, "aa", "bb", 0.002},
+		{wrAll, "aabc", "bbcaa", 0.211},
+	}
+	for i, td := range testdata {
+		if d := td.WR.Distance(td.A, td.B); !equals(d, td.Dist) {
+			t.Errorf(`%d: wr.Distance("%s", "%s") is %f, want %f`, i, td.A, td.B, d, td.Dist)
+		}
+	}
+}
+
 func TestLevesteinParam_Distance(t *testing.T) {
 	testdata := []struct {
 		Param LevenshteinParam
