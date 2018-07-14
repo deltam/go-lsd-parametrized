@@ -2,6 +2,8 @@
 
 Calculate Leveshtein Distance by specific parameters written in Go.
 
+[godoc](https://godoc.org/github.com/deltam/go-lsd-parametrized)
+
 ## Usage
 
 ```go
@@ -45,6 +47,30 @@ standard = 4
 weighted = 0.220000
 normalized = 0.027500
 rune weight = 0.111100
+```
+
+## Custom Distance
+
+```go
+type LengthDiff struct{}
+
+func (_ LengthDiff) Distance(a, b string) float64 {
+    d := utf8.RuneCountInString(a) - utf8.RuneCountInString(b)
+    return math.Abs(float64(d))
+}
+
+func main() {
+    d := LengthDiff{}
+    fmt.Println(d.Distance("kitten", "shitting"))
+    // Output:
+    // 2
+
+    group := []string{"", "a", "ab", "abc"}
+    s, dist := lsdp.Nearest(d, "xx", group)
+    fmt.Println(s, dist)
+    // Output:
+    // ab 0
+}
 ```
 
 ## Use Case
