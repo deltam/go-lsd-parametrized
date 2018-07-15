@@ -49,3 +49,29 @@ func TestDistanceAll(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkNearest(b *testing.B) {
+	std := Weights{1, 1, 1}
+	s := "aaaaaaaaaaaa000000000000000000"
+	group := make([]string, 100)
+	for i := 0; i < len(group); i++ {
+		group[i] = "abcdefghijk0000000000000000000"
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = Nearest(std, s, group)
+	}
+}
+
+func BenchmarkDistanceAll(b *testing.B) {
+	std := Weights{1, 1, 1}
+	s := "aaaaaaaaaaaabbbbbbbbbbb00000000000000"
+	group := make([]string, 1000)
+	for i := 0; i < len(group); i++ {
+		group[i] = "abcdefghijk0000000000000000000000000000"
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = DistanceAll(std, s, group)
+	}
+}
