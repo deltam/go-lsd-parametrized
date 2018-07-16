@@ -1,6 +1,9 @@
 package lsdp
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 func TestNearest(t *testing.T) {
 	answers := []string{
@@ -50,28 +53,43 @@ func TestDistanceAll(t *testing.T) {
 	}
 }
 
-func BenchmarkNearest(b *testing.B) {
-	std := Weights{1, 1, 1}
-	s := "aaaaaaaaaaaa000000000000000000"
-	group := make([]string, 100)
-	for i := 0; i < len(group); i++ {
-		group[i] = "abcdefghijk0000000000000000000"
+func makeBenchInputStrings() []string {
+	strs := make([]string, 1<<6)
+	var alphaNum string
+	for i := 0; i < 10; i++ {
+		alphaNum += "abcdefghijklmnopqrstuvwxyz0123456789"
 	}
+	runes := []rune(alphaNum)
+	for i := 0; i < len(strs); i++ {
+		rand.Shuffle(len(runes), func(i, j int) {
+			runes[i], runes[j] = runes[j], runes[i]
+		})
+		strs[i] = string(runes)
+	}
+	return strs
+}
+
+var benchInputStrings = makeBenchInputStrings()
+
+func BenchmarkNearest1(b *testing.B) { benchNearest(b, "a") }
+func BenchmarkNearest2(b *testing.B) { benchNearest(b, "aaaaaaaaaaaa000000000000000000") }
+
+func benchNearest(b *testing.B, s string) {
+	std := Weights{1, 1, 1}
+	input := makeBenchInputStrings()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Nearest(std, s, group)
+		Nearest(std, s, input)
 	}
 }
 
-func BenchmarkDistanceAll(b *testing.B) {
+func BenchmarkDistanceAll1(b *testing.B) { benchDistanceAll(b, "a") }
+func BenchmarkDistanceAll2(b *testing.B) { benchDistanceAll(b, "aaaaaaaaaaaa000000000000000000") }
+
+func benchDistanceAll(b *testing.B, s string) {
 	std := Weights{1, 1, 1}
-	s := "aaaaaaaaaaaabbbbbbbbbbb00000000000000"
-	group := make([]string, 1000)
-	for i := 0; i < len(group); i++ {
-		group[i] = "abcdefghijk0000000000000000000000000000"
-	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DistanceAll(std, s, group)
+		DistanceAll(std, s, benchInputStrings)
 	}
 }
