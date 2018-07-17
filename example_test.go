@@ -23,16 +23,16 @@ func ExampleByRune() {
 
 func ExampleNearest() {
 	std := lsdp.Weights{1, 1, 1}
-	group := []string{"apple", "orange", "lemon", "melon"}
-	fmt.Println(lsdp.Nearest(std, "lon", group))
+	group := []string{"apple", "orange", "lemon", "water melon"}
+	fmt.Println(lsdp.Nearest(std, "mon", group))
 	// Output:
-	// melon 2
+	// lemon 2
 }
 
 func ExampleDistanceAll() {
 	std := lsdp.Weights{1, 1, 1}
-	group := []string{"apple", "orange", "lemon", "melon"}
-	fmt.Println(lsdp.DistanceAll(std, "lon", group))
+	group := []string{"apple", "orange", "lemon", "water melon"}
+	fmt.Println(lsdp.DistanceAll(std, "mon", group))
 	// Output:
-	// [5 5 2 2]
+	// [5 5 2 8]
 }
