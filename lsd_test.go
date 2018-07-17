@@ -2,6 +2,7 @@ package lsdp
 
 import (
 	"math"
+	"math/rand"
 	"testing"
 )
 
@@ -167,4 +168,47 @@ func TestLsd(t *testing.T) {
 			t.Errorf("lsd(\"%s\", \"%s\") = %d, want 2", d.A, d.B, d.Cost)
 		}
 	}
+}
+
+func makeBenchInputLongInput() string {
+	var alphaNum string
+	for i := 0; i < 1<<10; i++ {
+		alphaNum += "abcdefghijklmnopqrstuvwxyz0123456789"
+	}
+	runes := []rune(alphaNum)
+	rand.Shuffle(len(runes), func(i, j int) {
+		runes[i], runes[j] = runes[j], runes[i]
+	})
+	return string(runes)
+}
+
+var benchLongInput = makeBenchInputLongInput()
+
+func benchmarkLsd(b *testing.B, s string) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Lsd(s, benchLongInput)
+		Lsd(benchLongInput, s)
+	}
+}
+
+func BenchmarkLsd1(b *testing.B) { benchmarkLsd(b, "a") }
+func BenchmarkLsd2(b *testing.B) { benchmarkLsd(b, "abababababababababababababababababababababab") }
+
+func benchWeightsDist(b *testing.B, s string) {
+	w := Weights{
+		Insert:  rand.Float64(),
+		Delete:  rand.Float64(),
+		Replace: rand.Float64(),
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		w.Distance(s, benchLongInput)
+		w.Distance(benchLongInput, s)
+	}
+}
+
+func BenchmarkWeightsDistance1(b *testing.B) { benchWeightsDist(b, "a") }
+func BenchmarkWeightsDistance2(b *testing.B) {
+	benchWeightsDist(b, "abababababababababababababababababababababab")
 }
