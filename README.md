@@ -75,7 +75,7 @@ func main() {
 
 ## Use Case
 
-- Clastering error messages
+- Clustering error messages
 
 ## License
 
