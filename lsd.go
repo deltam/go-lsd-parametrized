@@ -180,20 +180,21 @@ func accumulateCost(a, b string, costf costFunc, less lessFunc) editCell {
 		_, _, costRow[i] = costf(ar[i-1], 0, dummy, dummy, costRow[i-1])
 	}
 
-	next := make([]editCell, len(costRow))
+	var left editCell
 	for bc := 1; bc < len(br)+1; bc++ {
-		_, next[0], _ = costf(0, br[bc-1], dummy, costRow[0], dummy)
-		for i := 1; i < len(next); i++ {
-			min, ins, del := costf(ar[i-1], br[bc-1], costRow[i-1], costRow[i], next[i-1])
+		_, left, _ = costf(0, br[bc-1], dummy, costRow[0], dummy)
+		for i := 1; i < len(costRow); i++ {
+			min, ins, del := costf(ar[i-1], br[bc-1], costRow[i-1], costRow[i], left)
 			if less(ins, min) {
 				min = ins
 			}
 			if less(del, min) {
 				min = del
 			}
-			next[i] = min
+			costRow[i-1] = left
+			left = min
 		}
-		costRow, next = next, costRow
+		costRow[len(costRow)-1] = left
 	}
 
 	return costRow[len(costRow)-1]
