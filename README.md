@@ -1,8 +1,14 @@
 # go-lsd-parametrized
 
-Calculate Leveshtein Distance by specific parameters written in Go.
+Weighted Leveshtein Distance and its extended interfaces written in Go.
 
 [godoc](https://godoc.org/github.com/deltam/go-lsd-parametrized)
+
+## Installation
+
+```sh
+go get -u github.com/deltam/go-lsd-parametrized
+```
 
 ## Usage
 
@@ -12,7 +18,7 @@ package main
 import (
     "fmt"
 
-    . "github.com/deltam/go-lsd-parametrized"
+    "github.com/deltam/go-lsd-parametrized"
 )
 
 func main() {
@@ -20,18 +26,18 @@ func main() {
     fmt.Printf("compare string: %s, %s\n", a, b)
 
     // standard
-    fmt.Printf("standard = %d\n", Lsd(a, b))
+    fmt.Printf("standard = %d\n", lsdp.Lsd(a, b))
 
     // weighted
-    wd := Weights{Insert: 0.1, Delete: 1, Replace: 0.01}
+    wd := lsdp.Weights{Insert: 0.1, Delete: 1, Replace: 0.01}
     fmt.Printf("weighted = %f\n", wd.Distance(a, b))
 
     // weighted and normalized
-    nd := Normalized(wd)
+    nd := lsdp.Normalized(wd)
     fmt.Printf("normalized = %f\n", nd.Distance(a, b))
 
     // weighted by rune
-    wr := ByRune(&Weights{1, 1, 1}).
+    wr := lsdp.ByRune(&lsdp.Weights{1, 1, 1}).
         Insert("g", 0.1).
         Insert("h", 0.01).
         Replace("k", "s", 0.001).
@@ -47,6 +53,27 @@ standard = 4
 weighted = 0.220000
 normalized = 0.027500
 rune weight = 0.111100
+```
+
+## Operators
+
+```go
+func main() {
+	std := lsdp.Weights{1, 1, 1}
+	fruits := []string{"apple", "orange", "lemon", "water melon"}
+
+	// find nearest string
+	s, d := lsdp.Nearest(std, "aple", fruits)
+	fmt.Println(s, d)
+	// Output:
+	// apple 2
+
+	// calculate distance of each strings
+	ds := lsdp.DistanceAll(std, "aple", fruits)
+	fmt.Println(ds)
+	// Output:
+	// [1 4 5 9]
+}
 ```
 
 ## Custom Distance
@@ -70,6 +97,46 @@ func main() {
     fmt.Println(s, dist)
     // Output:
     // ab 0
+}
+```
+
+Composite two Distances
+
+```go
+func Far(dm1, dm2 lsdp.DistanceMeasurer) lsdp.DistanceMeasurer {
+    return &far{dm1: dm1, dm2: dm2}
+}
+
+type far struct {
+    dm1, dm2 lsdp.DistanceMeasurer
+}
+
+func (f *far) Distance(a, b string) float64 {
+    d1 := f.dm1.Distance(a, b)
+    d2 := f.dm2.Distance(a, b)
+    if d1 > d2 {
+        return d1
+    }
+    return d2
+}
+
+func main() {
+    a, b := "kitten", "shitting"
+
+    std := lsdp.Weights{Insert: 1, Delete: 1, Replace: 1}
+    fmt.Println(std.Distance(a, b))
+    // Output:
+    // 4
+
+    wd := lsdp.Weights{Insert: 10, Delete: 1, Replace: 0.1}
+    fmt.Println(wd.Distance(a, b))
+    // Output:
+    // 20.2
+
+    fd := Far(std, wd)
+    fmt.Println(fd.Distance(a, b))
+    // Output:
+    // 20.2
 }
 ```
 
