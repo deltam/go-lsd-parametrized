@@ -59,20 +59,20 @@ rune weight = 0.111100
 
 ```go
 func main() {
-	std := lsdp.Weights{1, 1, 1}
-	fruits := []string{"apple", "orange", "lemon", "water melon"}
+    std := lsdp.Weights{1, 1, 1}
+    fruits := []string{"apple", "orange", "lemon", "water melon"}
 
-	// find nearest string
-	s, d := lsdp.Nearest(std, "aple", fruits)
-	fmt.Println(s, d)
-	// Output:
-	// apple 2
+    // find nearest string
+    s, d := lsdp.Nearest(std, "aple", fruits)
+    fmt.Println(s, d)
+    // Output:
+    // apple 2
 
-	// calculate distance of each strings
-	ds := lsdp.DistanceAll(std, "aple", fruits)
-	fmt.Println(ds)
-	// Output:
-	// [1 4 5 9]
+    // calculate distance of each strings
+    ds := lsdp.DistanceAll(std, "aple", fruits)
+    fmt.Println(ds)
+    // Output:
+    // [1 4 5 9]
 }
 ```
 
