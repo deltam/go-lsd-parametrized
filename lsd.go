@@ -1,4 +1,6 @@
-// Package lsdp is a Levenshtein distance and its extended interface
+/*
+Package lsdp is a Weighted Levenshtein distance and its extended interface
+*/
 package lsdp
 
 // DistanceMeasurer provides measurement of the distance between 2 strings
@@ -120,55 +122,6 @@ func (p normalizedParam) Distance(a, b string) float64 {
 	return d / float64(l)
 }
 
-// LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
-type LevenshteinParam struct {
-	Insert  float64
-	Delete  float64
-	Replace float64
-}
-
-// Distance returns Levenshtein distance
-func (p LevenshteinParam) Distance(a, b string) float64 {
-	_, cnt := CountEdit(a, b)
-	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
-}
-
-// EditType represents authorized editing means in Levenshtein distance
-type EditType int
-
-// Authorized editing means: insert, delete, replace, none
-const (
-	INSERT EditType = iota
-	DELETE
-	REPLACE
-	NONE
-)
-
-// EditCounts represents aggregating by editing types
-type EditCounts [4]int
-
-// Get the number of specified edit
-func (ec EditCounts) Get(t EditType) int {
-	return ec[t]
-}
-
-// CountEdit aggregates the minimum number of edits to change from a to b
-func CountEdit(a, b string) (int, EditCounts) {
-	result := accumulateCost(a, b, func(aRune, bRune rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
-		if aRune != bRune {
-			diagonal.inc(REPLACE)
-		} else {
-			diagonal.count[NONE]++
-		}
-		above.inc(INSERT)
-		left.inc(DELETE)
-		return diagonal, above, left
-	}, func(ec1, ec2 editCell) bool {
-		return ec1.cost-float64(ec1.count.Get(NONE)) < ec2.cost-float64(ec2.count.Get(NONE))
-	})
-	return int(result.cost), result.count
-}
-
 type costFunc func(ar, br rune, diagonal, above, left editCell) (rep, ins, del editCell)
 type lessFunc func(a, b editCell) bool
 
@@ -215,4 +168,53 @@ func (c *editCell) inc(t EditType) {
 
 func lessCost(a, b editCell) bool {
 	return a.cost < b.cost
+}
+
+// EditType represents authorized editing means in Levenshtein distance
+type EditType int
+
+// Authorized editing means: insert, delete, replace, none
+const (
+	INSERT EditType = iota
+	DELETE
+	REPLACE
+	NONE
+)
+
+// EditCounts represents aggregating by editing types
+type EditCounts [4]int
+
+// Get the number of specified edit
+func (ec EditCounts) Get(t EditType) int {
+	return ec[t]
+}
+
+// LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
+type LevenshteinParam struct {
+	Insert  float64
+	Delete  float64
+	Replace float64
+}
+
+// Distance returns Levenshtein distance
+func (p LevenshteinParam) Distance(a, b string) float64 {
+	_, cnt := CountEdit(a, b)
+	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
+}
+
+// CountEdit aggregates the minimum number of edits to change from a to b
+func CountEdit(a, b string) (int, EditCounts) {
+	result := accumulateCost(a, b, func(aRune, bRune rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
+		if aRune != bRune {
+			diagonal.inc(REPLACE)
+		} else {
+			diagonal.count[NONE]++
+		}
+		above.inc(INSERT)
+		left.inc(DELETE)
+		return diagonal, above, left
+	}, func(ec1, ec2 editCell) bool {
+		return ec1.cost-float64(ec1.count.Get(NONE)) < ec2.cost-float64(ec2.count.Get(NONE))
+	})
+	return int(result.cost), result.count
 }
