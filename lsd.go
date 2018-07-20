@@ -1,5 +1,5 @@
 /*
-Package lsdp is a Weighted Levenshtein distance and its extended interface
+Package lsdp provides Weighted Levenshtein distance and its extended interface
 */
 package lsdp
 
