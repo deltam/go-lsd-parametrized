@@ -23,15 +23,15 @@ type Weights struct {
 
 // Distance returns weighted Levenshtein distance
 func (w Weights) Distance(a, b string) float64 {
-	result := accumulateCost(a, b, func(ar, br rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
+	result := accumulateCost(a, b, func(_, _ int, ar, br rune, diagonal, above, left float64) (float64, float64, float64) {
 		if ar != br {
-			diagonal.cost += w.Replace
+			diagonal += w.Replace
 		}
-		above.cost += w.Insert
-		left.cost += w.Delete
+		above += w.Insert
+		left += w.Delete
 		return diagonal, above, left
-	}, lessCost)
-	return result.cost
+	}, minCost)
+	return result
 }
 
 // ByRune returns weighted levenshtein distance by rune
@@ -54,25 +54,25 @@ type WeightsByRune struct {
 
 // Distance returns weighted levenshtein distance by rune
 func (wr *WeightsByRune) Distance(a, b string) float64 {
-	ret := accumulateCost(a, b, func(ar, br rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
+	ret := accumulateCost(a, b, func(_, _ int, ar, br rune, diagonal, above, left float64) (float64, float64, float64) {
 		if rw, ok := wr.repRune[[2]rune{ar, br}]; ok {
-			diagonal.cost += rw
+			diagonal += rw
 		} else if ar != br {
-			diagonal.cost += wr.w.Replace
+			diagonal += wr.w.Replace
 		}
 		if rw, ok := wr.insRune[br]; ok {
-			above.cost += rw
+			above += rw
 		} else {
-			above.cost += wr.w.Insert
+			above += wr.w.Insert
 		}
 		if rw, ok := wr.delRune[ar]; ok {
-			left.cost += rw
+			left += rw
 		} else {
-			left.cost += wr.w.Delete
+			left += wr.w.Delete
 		}
 		return diagonal, above, left
-	}, lessCost)
-	return ret.cost
+	}, minCost)
+	return ret
 }
 
 // Insert specify cost by insert rune
@@ -122,30 +122,23 @@ func (p normalizedParam) Distance(a, b string) float64 {
 	return d / float64(l)
 }
 
-type costFunc func(ar, br rune, diagonal, above, left editCell) (rep, ins, del editCell)
-type lessFunc func(a, b editCell) bool
+type costFunc func(ai, bi int, ar, br rune, diagonal, above, left float64) (rep, ins, del float64)
+type minFunc func(a, b, c float64) (min float64)
 
-func accumulateCost(a, b string, costf costFunc, less lessFunc) editCell {
+func accumulateCost(a, b string, costf costFunc, min minFunc) float64 {
 	ar, br := []rune(a), []rune(b)
-	costRow := make([]editCell, len(ar)+1)
-	dummy := editCell{}
+	costRow := make([]float64, len(ar)+1)
 	for i := 1; i < len(costRow); i++ {
-		_, _, costRow[i] = costf(ar[i-1], 0, dummy, dummy, costRow[i-1])
+		_, _, costRow[i] = costf(i, 0, ar[i-1], 0, 0, 0, costRow[i-1])
 	}
 
-	var left editCell
+	var left float64
 	for bc := 1; bc < len(br)+1; bc++ {
-		_, left, _ = costf(0, br[bc-1], dummy, costRow[0], dummy)
+		_, left, _ = costf(0, bc, 0, br[bc-1], 0, costRow[0], 0)
 		for i := 1; i < len(costRow); i++ {
-			min, ins, del := costf(ar[i-1], br[bc-1], costRow[i-1], costRow[i], left)
-			if less(ins, min) {
-				min = ins
-			}
-			if less(del, min) {
-				min = del
-			}
+			rep, ins, del := costf(i, bc, ar[i-1], br[bc-1], costRow[i-1], costRow[i], left)
 			costRow[i-1] = left
-			left = min
+			left = min(rep, ins, del)
 		}
 		costRow[len(costRow)-1] = left
 	}
@@ -153,68 +146,13 @@ func accumulateCost(a, b string, costf costFunc, less lessFunc) editCell {
 	return costRow[len(costRow)-1]
 }
 
-// editCell represents cost & number of edits
-type editCell struct {
-	cost  float64
-	count EditCounts
-}
-
-func (c *editCell) inc(t EditType) {
-	if t != NONE {
-		c.cost++
+func minCost(a, b, c float64) (min float64) {
+	min = a
+	if b < min {
+		min = b
 	}
-	c.count[t]++
-}
-
-func lessCost(a, b editCell) bool {
-	return a.cost < b.cost
-}
-
-// EditType represents authorized editing means in Levenshtein distance
-type EditType int
-
-// Authorized editing means: insert, delete, replace, none
-const (
-	INSERT EditType = iota
-	DELETE
-	REPLACE
-	NONE
-)
-
-// EditCounts represents aggregating by editing types
-type EditCounts [4]int
-
-// Get the number of specified edit
-func (ec EditCounts) Get(t EditType) int {
-	return ec[t]
-}
-
-// LevenshteinParam represents Levenshtein distance parameters for weighted by edit counts
-type LevenshteinParam struct {
-	Insert  float64
-	Delete  float64
-	Replace float64
-}
-
-// Distance returns Levenshtein distance
-func (p LevenshteinParam) Distance(a, b string) float64 {
-	_, cnt := CountEdit(a, b)
-	return float64(cnt.Get(INSERT))*p.Insert + float64(cnt.Get(DELETE))*p.Delete + float64(cnt.Get(REPLACE))*p.Replace
-}
-
-// CountEdit aggregates the minimum number of edits to change from a to b
-func CountEdit(a, b string) (int, EditCounts) {
-	result := accumulateCost(a, b, func(aRune, bRune rune, diagonal, above, left editCell) (editCell, editCell, editCell) {
-		if aRune != bRune {
-			diagonal.inc(REPLACE)
-		} else {
-			diagonal.count[NONE]++
-		}
-		above.inc(INSERT)
-		left.inc(DELETE)
-		return diagonal, above, left
-	}, func(ec1, ec2 editCell) bool {
-		return ec1.cost-float64(ec1.count.Get(NONE)) < ec2.cost-float64(ec2.count.Get(NONE))
-	})
-	return int(result.cost), result.count
+	if c < min {
+		min = c
+	}
+	return
 }
