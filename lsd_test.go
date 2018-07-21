@@ -144,7 +144,7 @@ func TestNormalized(t *testing.T) {
 		{"ab", "a", 0.5},
 	}
 
-	nd := Normalized(LevenshteinParam{Insert: 1, Delete: 1, Replace: 1})
+	nd := Normalized(Weights{Insert: 1, Delete: 1, Replace: 1})
 	for _, td := range testdata {
 		if d := nd.Distance(td.A, td.B); !equals(d, td.Dist) {
 			t.Errorf(`dist("%s", "%s") = %f, want %f`, td.A, td.B, d, td.Dist)
