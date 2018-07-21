@@ -212,3 +212,14 @@ func BenchmarkWeightsDistance1(b *testing.B) { benchWeightsDist(b, "a") }
 func BenchmarkWeightsDistance2(b *testing.B) {
 	benchWeightsDist(b, "abababababababababababababababababababababab")
 }
+
+func BenchmarkCountEdit1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		CountEdit("a", benchLongInput)
+	}
+}
+func BenchmarkCountEdit2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		CountEdit("abababababababbaababababbababa", benchLongInput)
+	}
+}
