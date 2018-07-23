@@ -23,18 +23,23 @@ import (
 
 func main() {
     a, b := "kitten", "shitting"
-    fmt.Printf("compare string: %s, %s\n", a, b)
 
     // standard
-    fmt.Printf("standard = %d\n", lsdp.Lsd(a, b))
+    fmt.Println(lsdp.Lsd(a, b))
+    // Output:
+    // 4
 
     // weighted
     wd := lsdp.Weights{Insert: 0.1, Delete: 1, Replace: 0.01}
-    fmt.Printf("weighted = %f\n", wd.Distance(a, b))
+    fmt.Println(wd.Distance(a, b))
+    // Output:
+    // 0.22
 
     // weighted and normalized
     nd := lsdp.Normalized(wd)
-    fmt.Printf("normalized = %f\n", nd.Distance(a, b))
+    fmt.Println(nd.Distance(a, b))
+    // Output:
+    // 0.0275
 
     // weighted by rune
     wr := lsdp.ByRune(&lsdp.Weights{1, 1, 1}).
@@ -42,17 +47,10 @@ func main() {
         Insert("h", 0.01).
         Replace("k", "s", 0.001).
         Replace("e", "i", 0.0001)
-    fmt.Printf("rune weight = %f\n", wr.Distance(a, b))
+    fmt.Println(wr.Distance(a, b))
+    // Output:
+    // 0.1111
 }
-```
-
-```sh
-$ go run main.go
-compare string: kitten, shitting
-standard = 4
-weighted = 0.220000
-normalized = 0.027500
-rune weight = 0.111100
 ```
 
 ## Operators
