@@ -66,6 +66,7 @@ func TestWeightsByRune_Distance(t *testing.T) {
 		B    string
 		Dist float64
 	}{
+		{wrIns, "", "", 0},
 		{wrIns, "", "a", 0.1},
 		{wrIns, "", "aa", 0.2},
 		{wrDel, "a", "", 0.01},
@@ -103,6 +104,7 @@ func TestNormalized(t *testing.T) {
 		}
 	}
 }
+
 func makeBenchInputLongInput() string {
 	var alphaNum string
 	for i := 0; i < 1<<10; i++ {
