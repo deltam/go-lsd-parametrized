@@ -122,6 +122,15 @@ func (p normalizedParam) Distance(a, b string) float64 {
 	return d / float64(l)
 }
 
+// DistanceFunc type is an adapter to allow the use of ordinary functions as DistanceMeasurer.
+// Similar to http.HandlerFunc.
+type DistanceFunc func(string, string) float64
+
+// Distance calls f(a,b)
+func (f DistanceFunc) Distance(a, b string) float64 {
+	return f(a, b)
+}
+
 type costFunc func(ai, bi int, ar, br rune, diagonal, above, left float64) (rep, ins, del float64)
 type minFunc func(a, b, c float64) (min float64)
 

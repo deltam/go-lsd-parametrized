@@ -77,15 +77,13 @@ func main() {
 ## Custom Distance
 
 ```go
-type LengthDiff struct{}
-
-func (_ LengthDiff) Distance(a, b string) float64 {
+func lenDiff(a, b string) float64 {
     d := utf8.RuneCountInString(a) - utf8.RuneCountInString(b)
     return math.Abs(float64(d))
 }
 
 func main() {
-    d := LengthDiff{}
+    var d lsdp.DistanceFunc = lenDiff
     fmt.Println(d.Distance("kitten", "shitting"))
     // Output:
     // 2

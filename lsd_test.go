@@ -105,6 +105,33 @@ func TestNormalized(t *testing.T) {
 	}
 }
 
+func TestDistanceFunc(t *testing.T) {
+	var constd DistanceFunc = func(_, _ string) float64 {
+		return 111
+	}
+	testdata := []struct {
+		A    string
+		B    string
+		Dist float64
+	}{
+		{"", "", 111},
+		{"", "a", 111},
+		{"a", "", 111},
+		{"a", "a", 111},
+		{"back", "books", 111},
+		{"back", "books", 111},
+		{"back", "books", 111},
+		{"back", "books", 111},
+		{"back", "boo", 111},
+	}
+
+	for _, td := range testdata {
+		if d := constd.Distance(td.A, td.B); !equals(d, td.Dist) {
+			t.Errorf(`dist("%s", "%s") = %f, want %f`, td.A, td.B, d, td.Dist)
+		}
+	}
+}
+
 func makeBenchInputLongInput() string {
 	var alphaNum string
 	for i := 0; i < 1<<10; i++ {
